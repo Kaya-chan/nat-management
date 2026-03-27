@@ -417,7 +417,11 @@ nat_apply_from_state() {
   subnet="$(read_state "$f" '.subnet')"
   bw="$(read_state "$f" '.bw')"
 
-  [[ -n "$idNat" && -n "$ip" && -n "$ssh_port" ]] || die "Invalid state: $f"
+  [[ -n "$idNat" ]] || idNat="$(basename "$f" .json)"
+  if [[ -z "$idNat" || -z "$ip" || -z "$ssh_port" ]]; then
+    warn "Invalid state (missing idNat/ip/ssh_port): $f"
+    return 1
+  fi
 
   [[ -n "$wan" ]] || wan="$(find_wan_if_auto)"
   [[ -n "$subnet" ]] || subnet="$DEFAULT_SUBNET"
@@ -436,20 +440,6 @@ nat_apply_from_state() {
     fi
   fi
 }
-
-find_idnat_by_name() {
-  local name="$1"
-  local f
-  for f in "$STATE_DIR"/*.json; do
-    [[ -f "$f" ]] || continue
-    if [[ "$(jq -r '.name' "$f" 2>/dev/null || true)" == "$name" ]]; then
-      basename "$f" .json
-      return 0
-    fi
-  done
-  return 1
-}
-
 
 # ------------------------
 # create command implementation
@@ -601,6 +591,7 @@ cmd_reconcile() {
   netfilter-persistent save >/dev/null 2>&1 || true
 
   log "Reconcile done ✅ ok=$ok fail=$fail"
+  (( fail == 0 ))
 }
 
 cmd_create() {
@@ -964,6 +955,7 @@ Usage:
   $0 start <name>
   $0 stop <name>
   $0 delete <name>
+  $0 reconcile
 
 Run:
   $0 setup --wan eth0
