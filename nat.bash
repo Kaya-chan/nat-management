@@ -421,8 +421,13 @@ nat_apply_from_state() {
     idNat="$(basename "$f" .json)"
     warn "State missing idNat, using filename: $f"
   fi
-  if [[ -z "$idNat" || -z "$ip" || -z "$ssh_port" ]]; then
-    warn "Invalid state (missing idNat/ip/ssh_port): $f"
+
+  local missing=()
+  [[ -n "$idNat" ]] || missing+=("idNat")
+  [[ -n "$ip" ]] || missing+=("private_ip")
+  [[ -n "$ssh_port" ]] || missing+=("ssh_public_port")
+  if (( ${#missing[@]} > 0 )); then
+    warn "Invalid state (missing ${missing[*]}): $f"
     return 1
   fi
 
