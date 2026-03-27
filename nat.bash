@@ -418,10 +418,10 @@ nat_apply_from_state() {
   bw="$(read_state "$f" '.bw')"
 
   if [[ -z "$idNat" ]]; then
-    local derived_idnat
-    derived_idnat="$(basename "$f" .json)"
-    if [[ -n "$derived_idnat" ]]; then
-      idNat="$derived_idnat"
+    local derived_idNat
+    derived_idNat="$(basename "$f" .json)"
+    if [[ -n "$derived_idNat" ]]; then
+      idNat="$derived_idNat"
       warn "State missing idNat, using filename: $f"
     fi
   fi
