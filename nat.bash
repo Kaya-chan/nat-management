@@ -417,7 +417,10 @@ nat_apply_from_state() {
   subnet="$(read_state "$f" '.subnet')"
   bw="$(read_state "$f" '.bw')"
 
-  [[ -n "$idNat" ]] || idNat="$(basename "$f" .json)"
+  if [[ -z "$idNat" ]]; then
+    idNat="$(basename "$f" .json)"
+    warn "State missing idNat, using filename: $f"
+  fi
   if [[ -z "$idNat" || -z "$ip" || -z "$ssh_port" ]]; then
     warn "Invalid state (missing idNat/ip/ssh_port): $f"
     return 1
@@ -591,7 +594,9 @@ cmd_reconcile() {
   netfilter-persistent save >/dev/null 2>&1 || true
 
   log "Reconcile done ✅ ok=$ok fail=$fail"
-  (( fail == 0 ))
+  if (( fail > 0 )); then
+    return 1
+  fi
 }
 
 cmd_create() {
